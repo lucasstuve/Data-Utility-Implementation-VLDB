@@ -181,8 +181,8 @@ fn main() {
     bench.set_exec_time(execution_time as u32);
     bench.set_input_bytes(file_size_bytes);
     bench.set_prove_time(proving_time as u32);
-    bench.set_total_cycles(prove_info.stats.total_cycles as u32);
-    bench.set_user_cycles(prove_info.stats.user_cycles as u32);
+    bench.set_total_cycles(prove_info.stats.total_cycles as u64);
+    bench.set_user_cycles(prove_info.stats.user_cycles as u64);
     bench.set_veri_time(verifiy_time as u64);
     bench.set_segments(prove_info.stats.segments as u32);
 
