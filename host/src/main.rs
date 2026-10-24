@@ -303,8 +303,8 @@ fn main() {
     // Benchmark bookkeeping belongs to the protocol run, so write it before END.
     bench.set_dsl_query(dataset_name);
     bench.set_segments(prove_info.stats.segments as u32);
-    bench.set_user_cycles(prove_info.stats.user_cycles as u32);
-    bench.set_total_cycles(prove_info.stats.total_cycles as u32);
+    bench.set_user_cycles(prove_info.stats.user_cycles as u64);
+    bench.set_total_cycles(prove_info.stats.total_cycles as u64);
     bench.set_prove_time(proving_time as u32);
     bench.set_veri_time(verify_attest_time as u64);
     bench.set_input_bytes(batch_bytes.len() as u64);
