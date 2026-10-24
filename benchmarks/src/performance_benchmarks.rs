@@ -1,4 +1,3 @@
-use csv::Writer;
 use csv::WriterBuilder;
 use std::error::Error;
 use std::fs::OpenOptions;
@@ -12,8 +11,8 @@ pub struct Row<'a> {
     pub n_events: u32,
     pub dsl_case: &'a str,
     pub input_bytes: u64,
-    pub total_cycles: u32,
-    pub user_cycles: u32,
+    pub total_cycles: u64,
+    pub user_cycles: u64,
     pub segments: u32,
     pub time_env_s: u32,
     pub time_exec_s: u32,
@@ -31,8 +30,8 @@ impl<'a> Row<'a> {
             n_events: (0 as u32),
             dsl_case: "",
             input_bytes: (0 as u64),
-            total_cycles: (0 as u32),
-            user_cycles: (0 as u32),
+            total_cycles: (0 as u64),
+            user_cycles: (0 as u64),
             segments: (0 as u32),
             time_env_s: (0 as u32),
             time_exec_s: (0 as u32),
@@ -47,10 +46,10 @@ impl<'a> Row<'a> {
     pub fn set_input_bytes(&mut self, n_bytes: u64) {
         self.input_bytes = n_bytes;
     }
-    pub fn set_total_cycles(&mut self, n_cycles: u32) {
+    pub fn set_total_cycles(&mut self, n_cycles: u64) {
         self.total_cycles = n_cycles;
     }
-    pub fn set_user_cycles(&mut self, n_cycles: u32) {
+    pub fn set_user_cycles(&mut self, n_cycles: u64) {
         self.user_cycles = n_cycles;
     }
     pub fn set_env_time(&mut self, time_s: u32) {
@@ -94,4 +93,29 @@ pub fn write_results_csv(rows: Vec<Row>, file_name: &str) -> Result<(), Box<dyn 
     }
     wtr.flush()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn csv_preserves_cycle_counts_larger_than_u32() {
+        let mut row = Row::new();
+        row.set_total_cycles(u32::MAX as u64 + 1);
+        row.set_user_cycles(u64::MAX);
+
+        let mut writer = csv::Writer::from_writer(Vec::new());
+        writer.serialize(row).unwrap();
+        let bytes = writer.into_inner().unwrap();
+
+        let mut reader = csv::Reader::from_reader(bytes.as_slice());
+        let headers = reader.headers().unwrap().clone();
+        let record = reader.records().next().unwrap().unwrap();
+        let total_cycles_column = headers.iter().position(|h| h == "total_cycles").unwrap();
+        let user_cycles_column = headers.iter().position(|h| h == "user_cycles").unwrap();
+
+        assert_eq!(record.get(total_cycles_column), Some("4294967296"));
+        assert_eq!(record.get(user_cycles_column), Some("18446744073709551615"));
+    }
 }
